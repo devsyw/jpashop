@@ -20,7 +20,7 @@ class MemberJPARepositoryTest {
     @Test
     public void testMember() throws Exception {
         //given
-        Member member = new Member("memberA");
+        Member member = new Member("memberA", 10);
 
         //when - 아래 멤버들은 같은 객체(JPA는 영속성을 보장한다)
         Member savedMember = memberJPARepository.save(member);
@@ -35,8 +35,8 @@ class MemberJPARepositoryTest {
 
     @Test
     public void basicCRUD() {
-        Member member1 = new Member("member1");
-        Member member2 = new Member("member2");
+        Member member1 = new Member("member1", 10);
+        Member member2 = new Member("member2", 10);
         memberJPARepository.save(member1);
         memberJPARepository.save(member2);
 
@@ -62,5 +62,41 @@ class MemberJPARepositoryTest {
 
         long deletedCount = memberJPARepository.count();
         Assertions.assertThat(deletedCount).isEqualTo(0);
+    }
+
+    @Test
+    public void testQueryMethod() {
+        Member m1 = new Member("aaa", 10);
+        Member m2 = new Member("aaa", 20);
+
+        memberJPARepository.save(m1);
+        memberJPARepository.save(m2);
+
+        List<Member> result = memberJPARepository.findByUsernameAndAgeGreaterThen("aaa", 15);
+
+        Assertions.assertThat(result.get(0).getUsername()).isEqualTo("aaa");
+        Assertions.assertThat(result.get(0).getAge()).isEqualTo(20);
+        Assertions.assertThat(result.size()).isEqualTo(1);
+    }
+    
+    @Test
+    public void paging() {
+        memberJPARepository.save(new Member("member1", 10));
+        memberJPARepository.save(new Member("member2", 10));
+        memberJPARepository.save(new Member("member3", 10));
+        memberJPARepository.save(new Member("member4", 10));
+        memberJPARepository.save(new Member("member5", 10));
+        memberJPARepository.save(new Member("member6", 10));
+        memberJPARepository.save(new Member("member7", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        List<Member> members = memberJPARepository.findByPage(age, offset, limit);
+        long totalCount = memberJPARepository.totalCount(age);
+
+        Assertions.assertThat(members.size()).isEqualTo(3);
+        Assertions.assertThat(totalCount).isEqualTo(7);
     }
 }
